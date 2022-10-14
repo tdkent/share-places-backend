@@ -2,21 +2,24 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const app = express();
 
+const usersRoutes = require("./routes/users-routes")
 const placesRoutes = require("./routes/places-routes");
 const HttpError = require('./models/http-error')
 const PORT = 4000;
 
 app.use(bodyParser.json())
 
+app.use("/api/users", usersRoutes)
 app.use("/api/places", placesRoutes);
 
-// General 404 error handling
+// General 404 handling
 // This middleware will only be reached if a previous request did not receive a response
 app.use((req, res, next) => {
   const error = new HttpError('Could not find this route!', 404)
   throw error
 })
 
+// General error handling
 // express recognizes middleware with four args to be an error-handling middleware.
 // this function will execute if any middleware in front of it yields an error
 app.use((error, req, res, next) => {
