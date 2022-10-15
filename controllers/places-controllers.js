@@ -2,6 +2,7 @@ const { v4: uuidv4 } = require("uuid");
 const { validationResult } = require("express-validator");
 
 const HttpError = require("../models/http-error");
+const getCoordsForAddress = require('../utils/location')
 
 let DUMMY_PLACES = [
   {
@@ -66,7 +67,7 @@ const getPlacesByUserId = (req, res, next) => {
   res.send(filterUserPlaces);
 };
 
-const postCreatePlace = (req, res, next) => {
+const postCreatePlace = async (req, res, next) => {
   // The second half of express-validator now fires, returning an errors object if any of the defined rules are not passed.
   // The isEmpty() method can be used to determine whether any errors are found on the error object
   const errors = validationResult(req);
@@ -75,7 +76,13 @@ const postCreatePlace = (req, res, next) => {
     console.log(errors);
     return next(new HttpError("Invalid inputs. Please try again!", 422));
   }
-  const { title, description, coordinates, address, creator } = req.body;
+  const { title, description, address, creator } = req.body;
+  let coordinates;
+  try {
+    coordinates = await getCoordsForAddress(address);
+  } catch (error) {
+    return next(error)
+  }
   const createdPlace = {
     id: uuidv4(),
     title,
