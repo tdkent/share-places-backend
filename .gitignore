@@ -1,7 +1,4 @@
 # dependencies
 /node_modules
 
-#utils
-/utils
-
 .env
