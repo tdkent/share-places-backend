@@ -1,5 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
 require('dotenv').config();
 
 const app = express();
@@ -38,6 +39,12 @@ app.use((error, req, res, next) => {
   res.json({ message: error.message || 'An unknown error occurred!' });
 });
 
-app.listen(PORT, () => {
-  console.log(`SharePlaces API server is listening on port ${PORT}`);
-});
+// .connect is async, so .then() and .catch() can be used
+mongoose
+  .connect(process.env.MONGO_CONN_STR)
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`SharePlaces API server is listening on port ${PORT}`);
+    });
+  })
+  .catch((err) => console.log(err));
