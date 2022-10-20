@@ -1,26 +1,34 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const mongoose = require('mongoose');
-require('dotenv').config();
+const express = require('express')
+const bodyParser = require('body-parser')
+const mongoose = require('mongoose')
+require('dotenv').config()
 
-const app = express();
+const app = express()
 
-const usersRoutes = require('./routes/users-routes');
-const placesRoutes = require('./routes/places-routes');
-const HttpError = require('./models/http-error');
-const PORT = 4000;
+const usersRoutes = require('./routes/users-routes')
+const placesRoutes = require('./routes/places-routes')
+const HttpError = require('./models/http-error')
+const PORT = 4000
 
-app.use(bodyParser.json());
+app.use(bodyParser.json())
 
-app.use('/api/users', usersRoutes);
-app.use('/api/places', placesRoutes);
+// add headers to response object to validate CORS
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000') // allows requests from only this domain ('*' would allow from any domain)
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization') // set which headers are allowed to be sent
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE') // set which methods are allowed
+  next()
+})
+
+app.use('/api/users', usersRoutes)
+app.use('/api/places', placesRoutes)
 
 // General 404 handling
 // This middleware will only be reached if a previous request did not receive a response
 app.use((req, res, next) => {
-  const error = new HttpError('Could not find this route!', 404);
-  throw error;
-});
+  const error = new HttpError('Could not find this route!', 404)
+  throw error
+})
 
 // General error handling
 // express recognizes middleware with four args to be an error-handling middleware.
@@ -29,22 +37,22 @@ app.use((error, req, res, next) => {
   // checks to see if a response has already been sent
   // another response will not be sent in this case
   if (res.headerSent) {
-    return next(error);
+    return next(error)
   }
   // check if error object being thrown has a code property
   // if not, 500 status code will be used by default
   // 500: Internal Server Error
-  res.status(error.code || 500);
+  res.status(error.code || 500)
   // Attach a message that can be used on the frontend
-  res.json({ message: error.message || 'An unknown error occurred!' });
-});
+  res.json({ message: error.message || 'An unknown error occurred!' })
+})
 
 // .connect is async, so .then() and .catch() can be used
 mongoose
   .connect(process.env.MONGO_CONN_STR)
   .then(() => {
     app.listen(PORT, () => {
-      console.log(`SharePlaces API server is listening on port ${PORT}`);
-    });
+      console.log(`SharePlaces API server is listening on port ${PORT}`)
+    })
   })
-  .catch((err) => console.log(err));
+  .catch((err) => console.log(err))
