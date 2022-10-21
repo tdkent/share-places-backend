@@ -32,7 +32,7 @@ const postRegisterUser = async (req, res, next) => {
       username: name,
       email,
       password,
-      image: 'https://en.wikipedia.org/wiki/Jean_Sibelius#/media/File:Jean_Sibelius_in_1890.jpg',
+      image: 'image not available',
       places: [],
     })
     await createdUser.save()
