@@ -29,10 +29,6 @@ const getPlacesByUserId = async (req, res, next) => {
   try {
     // returns an array
     const result = await Place.find({ creator: userId })
-    console.log(result)
-    if (!result.length) {
-      return next(new HttpError('Could not find any places for the provided user id!'))
-    }
     res
       .status(200)
       // convert Mongo objects within array to standard JS objects
@@ -105,7 +101,7 @@ const patchEditPlace = async (req, res, next) => {
     place.description = description
     const result = await place.save()
     // convert to normal JS object, convert _id to id
-    res.status(200).json(result.toObject({ getters: true }))
+    res.status(200).json({ message: 'Success!', place: result.toObject({ getters: true }) })
   } catch (err) {
     console.error(err)
     return next(new HttpError('Updating place failed! Please try again.'))
