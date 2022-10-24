@@ -1,5 +1,6 @@
 const { validationResult } = require('express-validator')
 const mongoose = require('mongoose')
+const fs = require('fs')
 
 const HttpError = require('../models/http-error')
 const Place = require('../models/place')
@@ -112,16 +113,16 @@ const patchEditPlace = async (req, res, next) => {
 
 const deletePlace = async (req, res, next) => {
   const { placeId } = req.params
+  const place = await Place.findById(placeId).populate('creator')
+  if (!place) {
+    return next(new HttpError('Delete failed: could not find a place with that id!', 404))
+  }
+  const imagePath = place.image
   try {
     // await Place.deleteOne({ id: placeId })
     // use populate to refer to another document stored in another collection, and work with its data by adding it to the returned object
     // a connection first needs to established between collections using ref in document's models
     // the argument 'creator' is provided to populate to search the corresponding user document for references to the placeId
-    const place = await Place.findById(placeId).populate('creator')
-    if (!place) {
-      return next(new HttpError('Delete failed: could not find a place with that id!', 404))
-    }
-    console.log(place)
     // since we want the operation to alter our database ONLY if the place is removed from both the places and users collections, we create a new session
     const session = await mongoose.startSession()
     session.startTransaction()
@@ -136,6 +137,10 @@ const deletePlace = async (req, res, next) => {
     console.error(err)
     return next(new HttpError('An error occurred while attempting to delete! Please try again.'))
   }
+  // delete image
+  fs.unlink(imagePath, (err) => {
+    console.log(err)
+  })
 }
 
 module.exports = {

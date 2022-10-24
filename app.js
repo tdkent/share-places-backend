@@ -4,7 +4,7 @@ const express = require('express')
 const morgan = require('morgan')
 const bodyParser = require('body-parser')
 const mongoose = require('mongoose')
-require('dotenv').config()
+require('dotenv').config() // redundant?
 
 const app = express()
 const { port, mongoKey } = require('./config/config')
