@@ -1,3 +1,5 @@
+const fs = require('fs')
+const path = require('path')
 const express = require('express')
 const morgan = require('morgan')
 const bodyParser = require('body-parser')
@@ -5,15 +7,19 @@ const mongoose = require('mongoose')
 require('dotenv').config()
 
 const app = express()
+const { port, mongoKey } = require('./config/config')
 
 const usersRoutes = require('./routes/users-routes')
 const placesRoutes = require('./routes/places-routes')
 const HttpError = require('./models/http-error')
-const PORT = 4000
 
 app.use(morgan('dev'))
 
 app.use(bodyParser.json())
+
+// returns image files. static indicates that no code is executed, just that a static file is returned.
+// path is a node module that constructs a path in which any requested files can be statically served. Otherwise, they will be locked down.
+app.use('/uploads/images', express.static(path.join('uploads', 'images')))
 
 // add headers to response object to validate CORS
 app.use((req, res, next) => {
@@ -37,9 +43,16 @@ app.use((req, res, next) => {
 // express recognizes middleware with four args to be an error-handling middleware.
 // this function will execute if any middleware in front of it yields an error
 app.use((error, req, res, next) => {
-  // checks to see if a response has already been sent
-  // another response will not be sent in this case
+  // req.file property added to request body by multer
+  if (req.file) {
+    // use fs.unlink to delete any files that were added to disk at time of error
+    fs.unlink(req.file.path, (err) => {
+      console.log(err)
+    })
+  }
   if (res.headerSent) {
+    // checks to see if a response has already been sent
+    // another response will not be sent in this case
     return next(error)
   }
   // check if error object being thrown has a code property
@@ -52,10 +65,10 @@ app.use((error, req, res, next) => {
 
 // .connect is async, so .then() and .catch() can be used
 mongoose
-  .connect(process.env.MONGO_CONN_STR)
+  .connect(mongoKey)
   .then(() => {
-    app.listen(PORT, () => {
-      console.log(`SharePlaces API server is listening on port ${PORT}`)
+    app.listen(port, () => {
+      console.log(`SharePlaces API server is listening on port ${port}`)
     })
   })
   .catch((err) => console.log(err))

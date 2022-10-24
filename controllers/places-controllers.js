@@ -48,6 +48,8 @@ const postCreatePlace = async (req, res, next) => {
     return next(new HttpError('Invalid inputs. Please try again!', 422))
   }
   const { title, description, address, creator } = req.body
+  console.log('body', req.body)
+  console.log('files', req.file)
   try {
     // check to see that provided user id is valid
     const existingUser = await User.findById(creator)
@@ -61,7 +63,7 @@ const postCreatePlace = async (req, res, next) => {
       description,
       address,
       location: coordinates,
-      image: 'https://en.wikipedia.org/wiki/Montezuma_Castle_National_Monument#/media/File:2021_Montezuma_Castle_3.jpg',
+      image: req.file.path,
       creator,
     })
     // creating a place is a two-step process: 1) add place to places, 2) add place to user
