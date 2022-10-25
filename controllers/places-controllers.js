@@ -12,9 +12,7 @@ const getCoordsForAddress = require('../utils/location')
 const getPlaceByPlaceId = async (req, res, next) => {
   const { placeId } = req.params
   try {
-    // returns an object
     const result = await Place.findById(placeId)
-    console.log(result)
     if (!result) {
       return next(new HttpError('Could not be find a place for the provided place id!', 404))
     }
@@ -48,12 +46,10 @@ const postCreatePlace = async (req, res, next) => {
     console.log(errors)
     return next(new HttpError('Invalid inputs. Please try again!', 422))
   }
-  const { title, description, address, creator } = req.body
-  console.log('body', req.body)
-  console.log('files', req.file)
+  const { title, description, address } = req.body
   try {
-    // check to see that provided user id is valid
-    const existingUser = await User.findById(creator)
+    // check to see that provided user id from req.user is valid
+    const existingUser = await User.findById(req.user.userId)
     if (!existingUser) {
       return next(new HttpError('You must have an account to create a new place!', 403))
     }
@@ -65,7 +61,7 @@ const postCreatePlace = async (req, res, next) => {
       address,
       location: coordinates,
       image: req.file.path,
-      creator,
+      creator: req.user.userId,
     })
     // creating a place is a two-step process: 1) add place to places, 2) add place to user
     // if either fail, entire process should be stopped without any collections being altered
@@ -99,7 +95,10 @@ const patchEditPlace = async (req, res, next) => {
   const { title, description } = req.body
   try {
     // retrieve the item to update first, then apply updates and save()
-    const place = await Place.findById(placeId)
+    const place = await Place.findById(placeId).populate('creator')
+    if (req.user.userId !== place.creator.id) {
+      return next(new HttpError('You are not authorized to edit this post!', 403))
+    }
     place.title = title
     place.description = description
     const result = await place.save()
@@ -116,6 +115,9 @@ const deletePlace = async (req, res, next) => {
   const place = await Place.findById(placeId).populate('creator')
   if (!place) {
     return next(new HttpError('Delete failed: could not find a place with that id!', 404))
+  }
+  if (req.user.userId !== place.creator.id) {
+    return next(new HttpError('You are not authorized to delete this post!', 403))
   }
   const imagePath = place.image
   try {

@@ -3,6 +3,7 @@ const { check } = require('express-validator')
 
 const router = express.Router()
 const upload = require('../middleware/file-upload')
+const auth = require('../middleware/auth')
 const { getPlaceByPlaceId, getPlacesByUserId, postCreatePlace, patchEditPlace, deletePlace } = require('../controllers/places-controllers')
 
 // We are using express-validator to validate body requests for us.
@@ -13,6 +14,10 @@ const { getPlaceByPlaceId, getPlacesByUserId, postCreatePlace, patchEditPlace, d
 router.get('/:placeId', getPlaceByPlaceId)
 // GET /api/places/user/:userId
 router.get('/user/:userId', getPlacesByUserId)
+
+// Authentication middleware
+router.use(auth)
+
 // POST /api/places
 router.post(
   '/',
