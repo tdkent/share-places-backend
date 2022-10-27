@@ -27,7 +27,7 @@ const getPlacesByUserId = async (req, res, next) => {
   const { userId } = req.params
   try {
     // returns an array
-    const result = await Place.find({ creator: userId })
+    const result = await Place.find({ creator: userId }).populate('creator', 'username')
     res
       .status(200)
       // convert Mongo objects within array to standard JS objects
