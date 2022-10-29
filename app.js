@@ -9,6 +9,7 @@ require('dotenv').config() // redundant?
 const app = express()
 const { port, mongoKey } = require('./config/config')
 
+const filesRoute = require('./routes/file-upload-route')
 const usersRoutes = require('./routes/users-routes')
 const placesRoutes = require('./routes/places-routes')
 const HttpError = require('./models/http-error')
@@ -29,6 +30,7 @@ app.use((req, res, next) => {
   next()
 })
 
+app.use('/api/files', filesRoute)
 app.use('/api/users', usersRoutes)
 app.use('/api/places', placesRoutes)
 
