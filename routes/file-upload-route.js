@@ -5,6 +5,7 @@ const auth = require('../middleware/auth')
 const upload = require('../services/file-upload')
 const singleImgUpload = upload.single('image')
 const { awsBucket } = require('../config/config')
+const HttpError = require('../models/http-error')
 
 // POST /api/files/file-upload
 
@@ -13,10 +14,26 @@ const { awsBucket } = require('../config/config')
 //   res.send(req.file.location)
 // })
 
+// POST /api/files/file-upload/auth
+router.post('/file-upload/auth', function (req, res) {
+  singleImgUpload(req, res, function (err) {
+    if (err) {
+      return res.status(422).json({ title: 'File Upload Failed', details: err.message })
+    }
+    const imageUrl = 'https://' + awsBucket + '.s3.us-west-1.amazonaws.com/' + req.file.key
+    return res.json({ imageUrl })
+  })
+})
+
 router.use(auth)
 
-router.post('/file-upload', function (req, res) {
+// POST /api/files/file-upload
+router.post('/file-upload', async function (req, res, next) {
   singleImgUpload(req, res, function (err) {
+    if (err) {
+      // return res.status(422).json({ title: 'File Upload Failed', details: err.message })
+      return next(new HttpError('File upload failed. Please make sure your file is JPG, JPEG, or PNG, and less than 1MB.', 422))
+    }
     const imageUrl = 'https://' + awsBucket + '.s3.us-west-1.amazonaws.com/' + req.file.key
     return res.json({ imageUrl })
   })

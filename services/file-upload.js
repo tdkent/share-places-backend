@@ -38,12 +38,22 @@ const s3 = new S3Client({
   },
 })
 
+const fileFilter = (req, file, cb) => {
+  if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/jpg' || file.mimetype === 'image/png') {
+    cb(null, true)
+  } else {
+    cb(new Error('Invalid MIME type, only JPG, JPEG or PNG files are allowed.'), false)
+  }
+}
+
 const upload = multer({
+  fileFilter,
+  limits: { fileSize: 1000000 },
   storage: multerS3({
-    s3: s3,
+    s3,
     bucket: awsBucket,
     metadata: function (req, file, cb) {
-      cb(null, { fieldName: 'TESTING_META_DATA' })
+      cb(null, { fieldName: file.fieldname })
     },
     key: function (req, file, cb) {
       cb(null, uuidv4() + '-' + file.originalname)

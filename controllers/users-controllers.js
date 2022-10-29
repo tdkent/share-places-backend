@@ -23,7 +23,7 @@ const postRegisterUser = async (req, res, next) => {
     console.log(errors)
     return next(new HttpError('Invalid inputs. Please try again!', 422))
   }
-  const { name, email, password } = req.body
+  const { name, email, password, image } = req.body
   try {
     const checkExistingUser = await User.findOne({ email })
     if (checkExistingUser) {
@@ -34,7 +34,7 @@ const postRegisterUser = async (req, res, next) => {
       username: name,
       email,
       password: hash,
-      image: req.file.path,
+      image,
       places: [],
     })
     await createdUser.save()
