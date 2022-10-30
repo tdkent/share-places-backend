@@ -1,11 +1,12 @@
 const { validationResult } = require('express-validator')
 const mongoose = require('mongoose')
-const fs = require('fs')
+const { S3Client, DeleteObjectCommand } = require('@aws-sdk/client-s3')
 
 const HttpError = require('../models/http-error')
 const Place = require('../models/place')
 const User = require('../models/user')
 const getCoordsForAddress = require('../utils/location')
+const { awsKeyId, awsKeySecret, awsBucket } = require('../config/config')
 
 // Note: Mongo will return an array if multiple query results are possible (ie, find()), and an object if only one query result is possible (ie, findById())
 
@@ -18,7 +19,7 @@ const getPlaceByPlaceId = async (req, res, next) => {
     }
     res.status(200).json(result.toObject({ getters: true }))
   } catch (err) {
-    console.error(err)
+    console.log(err)
     return next(new HttpError('An error occurred. Please try again.', 500))
   }
 }
@@ -33,7 +34,7 @@ const getPlacesByUserId = async (req, res, next) => {
       // convert Mongo objects within array to standard JS objects
       .json(result.map((place) => place.toObject({ getters: true })))
   } catch (err) {
-    console.error(err)
+    console.log(err)
     return next(new HttpError('An error occurred. Please try again.', 500))
   }
 }
@@ -47,7 +48,6 @@ const postCreatePlace = async (req, res, next) => {
     return next(new HttpError('Invalid inputs. Please try again!', 422))
   }
   const { title, description, address, image } = req.body
-  console.log({ image })
   try {
     // check to see that provided user id from req.user is valid
     const existingUser = await User.findById(req.user.userId)
@@ -80,8 +80,8 @@ const postCreatePlace = async (req, res, next) => {
     const result = await session.commitTransaction()
     // HTTP 201: Created new resource
     if (result.ok === 1) res.status(201).json({ message: 'Success!' })
-  } catch (err) {
-    console.error(err)
+  } catch (error) {
+    console.log(error)
     return next(new HttpError('Creating place failed! Please try again.', 500))
   }
 }
@@ -106,7 +106,7 @@ const patchEditPlace = async (req, res, next) => {
     // convert to normal JS object, convert _id to id
     res.status(200).json({ message: 'Success!', place: result.toObject({ getters: true }) })
   } catch (err) {
-    console.error(err)
+    console.log(err)
     return next(new HttpError('Updating place failed! Please try again.'))
   }
 }
@@ -120,7 +120,8 @@ const deletePlace = async (req, res, next) => {
   if (req.user.userId !== place.creator.id) {
     return next(new HttpError('You are not authorized to delete this post!', 403))
   }
-  const imagePath = place.image
+  const imageUrl = place.image.split('/')
+  const imageKey = imageUrl[imageUrl.length - 1]
   try {
     // await Place.deleteOne({ id: placeId })
     // use populate to refer to another document stored in another collection, and work with its data by adding it to the returned object
@@ -135,15 +136,20 @@ const deletePlace = async (req, res, next) => {
     // creator's data can then be updated
     await place.creator.save({ session })
     session.commitTransaction()
-    res.status(200).json({ message: 'Delete successful!' })
+    // Delete image file from S3 bucket
+    const s3 = new S3Client({
+      region: 'us-west-1',
+      credentials: {
+        accessKeyId: awsKeyId,
+        secretAccessKey: awsKeySecret,
+      },
+    })
+    const data = await s3.send(new DeleteObjectCommand({ Bucket: awsBucket, Key: imageKey }))
+    res.status(200).json({ message: `Deleted successfully.` })
   } catch (err) {
-    console.error(err)
+    console.log(err)
     return next(new HttpError('An error occurred while attempting to delete! Please try again.'))
   }
-  // delete image
-  fs.unlink(imagePath, (err) => {
-    console.log(err)
-  })
 }
 
 module.exports = {

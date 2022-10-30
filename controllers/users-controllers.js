@@ -11,8 +11,8 @@ const getUsers = async (req, res, next) => {
     // excludes the password field from the returned object
     const users = await User.find({}, '-password')
     res.status(200).json(users.map((user) => user.toObject({ getters: true })))
-  } catch (err) {
-    console.error(err)
+  } catch (error) {
+    console.log(error)
     return next(new HttpError('An error occurred retrieving users. Please try again.', 500))
   }
 }
@@ -40,8 +40,8 @@ const postRegisterUser = async (req, res, next) => {
     await createdUser.save()
     const token = jwt.sign({ userId: createdUser.id, email: createdUser.email }, jwtKey, { expiresIn: '2 days' })
     res.status(201).json({ message: `User account ${email} created!`, token, userId: createdUser.id, email: createdUser.email })
-  } catch (err) {
-    console.error(err)
+  } catch (error) {
+    console.log(error)
     return next(new HttpError('Registration failed. Please try again!', 500))
   }
 }
@@ -59,8 +59,8 @@ const postLoginUser = async (req, res, next) => {
     }
     const token = jwt.sign({ userId: user.id, email: user.email }, jwtKey, { expiresIn: '2 days' })
     res.status(200).json({ message: `Login successful. Welcome back ${user.username}!`, userId: user.id, email: user.email, token })
-  } catch (err) {
-    console.error(err)
+  } catch (error) {
+    console.log(error)
     return next(new HttpError('Login failed! Please try again', 500))
   }
 }

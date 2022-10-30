@@ -1,5 +1,3 @@
-const fs = require('fs')
-const path = require('path')
 const express = require('express')
 const morgan = require('morgan')
 const bodyParser = require('body-parser')
@@ -17,10 +15,6 @@ const HttpError = require('./models/http-error')
 app.use(morgan('dev'))
 
 app.use(bodyParser.json())
-
-// returns image files. static indicates that no code is executed, just that a static file is returned.
-// path is a node module that constructs a path in which any requested files can be statically served. Otherwise, they will be locked down.
-app.use('/uploads/images', express.static(path.join('uploads', 'images')))
 
 // add headers to response object to validate CORS
 app.use((req, res, next) => {
@@ -45,13 +39,6 @@ app.use((req, res, next) => {
 // express recognizes middleware with four args to be an error-handling middleware.
 // this function will execute if any middleware in front of it yields an error
 app.use((error, req, res, next) => {
-  // req.file property added to request body by multer
-  if (req.file) {
-    // use fs.unlink to delete any files that were added to disk at time of error
-    fs.unlink(req.file.path, (err) => {
-      console.log(err)
-    })
-  }
   if (res.headerSent) {
     // checks to see if a response has already been sent
     // another response will not be sent in this case

@@ -3,7 +3,6 @@ const { check } = require('express-validator')
 
 const router = express.Router()
 
-const upload = require('../middleware/file-upload')
 const auth = require('../middleware/auth')
 const { getPlaceByPlaceId, getPlacesByUserId, postCreatePlace, patchEditPlace, deletePlace } = require('../controllers/places-controllers')
 
@@ -20,14 +19,7 @@ router.get('/user/:userId', getPlacesByUserId)
 router.use(auth)
 
 // POST /api/places
-router.post(
-  '/',
-  // upload.single('image'),
-  check('title').not().isEmpty(),
-  check('description').isLength({ min: 5 }),
-  check('address').not().isEmpty(),
-  postCreatePlace
-)
+router.post('/', check('title').not().isEmpty(), check('description').isLength({ min: 5 }), check('address').not().isEmpty(), postCreatePlace)
 
 // PATCH /api/places/:placeId
 router.patch('/:placeId', check('title').not().isEmpty(), check('description').isLength({ min: 5 }), patchEditPlace)
