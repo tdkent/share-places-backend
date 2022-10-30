@@ -1,7 +1,6 @@
 const express = require('express')
 const router = express.Router()
 
-const auth = require('../middleware/auth')
 const upload = require('../services/file-upload')
 const singleImgUpload = upload.single('image')
 const { awsBucket } = require('../config/config')
