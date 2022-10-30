@@ -1,13 +1,25 @@
 {
-  "name": "app-backend",
+  "name": "shareplaces_api",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "API for SharePlaces travel and image sharing application. After users create their account, they may add a place they have visited to the site. Place data is sent to MongoDB, and images are sent to an Amazon S3 bucket.",
+  "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon app.js"
+    "start:dev": "nodemon app.js",
+    "start": "node app.js"
   },
-  "author": "",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tdkent/places-backend"
+  },
+  "keywords": [
+    "node",
+    "express",
+    "mongodb",
+    "mongoose",
+    "javascript"
+  ],
+  "author": "Tim Kent",
   "license": "ISC",
   "dependencies": {
     "aws-sdk": "^2.1242.0",
