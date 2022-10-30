@@ -57,7 +57,7 @@ mongoose
   .connect(mongoKey)
   .then(() => {
     app.listen(process.env.PORT || 4000, () => {
-      console.log(`SharePlaces API server is listening on port ${PORT}`)
+      console.log(`SharePlaces API server is listening on port ${process.env.PORT || 4000}`)
     })
   })
   .catch((err) => console.log(err))
