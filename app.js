@@ -6,7 +6,6 @@ require('dotenv').config() // redundant?
 
 const app = express()
 const { mongoKey } = require('./config/config')
-const { PORT = 4000 } = process.env
 
 const filesRoute = require('./routes/file-upload-route')
 const usersRoutes = require('./routes/users-routes')
@@ -57,7 +56,7 @@ app.use((error, req, res, next) => {
 mongoose
   .connect(mongoKey)
   .then(() => {
-    app.listen(PORT, () => {
+    app.listen(process.env.PORT || 4000, () => {
       console.log(`SharePlaces API server is listening on port ${PORT}`)
     })
   })
