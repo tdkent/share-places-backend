@@ -47,7 +47,7 @@ const postCreatePlace = async (req, res, next) => {
     console.log(errors)
     return next(new HttpError('Invalid inputs. Please try again!', 422))
   }
-  const { title, description, address, location, image } = req.body
+  const { title, description, address, image } = req.body
   try {
     // check to see that provided user id from req.user is valid
     const existingUser = await User.findById(req.user.userId)
@@ -55,12 +55,12 @@ const postCreatePlace = async (req, res, next) => {
       return next(new HttpError('You must have an account to create a new place!', 403))
     }
     // create coordinate using address and Google geolocation API
-    // const coordinates = await getCoordsForAddress(address)
+    const coordinates = await getCoordsForAddress(address)
     const createdPlace = new Place({
       title,
       description,
       address,
-      location,
+      location: coordinates,
       image,
       creator: req.user.userId,
     })
